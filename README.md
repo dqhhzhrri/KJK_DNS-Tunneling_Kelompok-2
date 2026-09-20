@@ -40,7 +40,7 @@ Berikut adalah rincian 10 poin utama yang kamianalisis beserta cara mengidentifi
   1. Buka file PCAP di Wireshark dan amati daftar paket utama.
   2. Perhatikan kolom **Info** yang dipenuhi dengan warna merah mencolok, yang menandakan adanya aktivitas paket TCP bertipe `[SYN]` dan `[RST, ACK]`.
 
-  [!image](Assets/nomer5.png)
+  ![image](Assets/nomer5.png)
 
   3. Amati kolom **Time** dan **Source/Destination** secara berurutan untuk melihat pola kedatangan paket
 
@@ -66,13 +66,13 @@ Berikut adalah rincian 10 poin utama yang kamianalisis beserta cara mengidentifi
 * **Cara Identifikasi:** 
   1. Ketik perintah filter **`http`** pada bar filter bagian atas Wireshark lalu tekan Enter untuk menyaring khusus trafik web.
 
-  [!image](Assets/nomor7.1.png)
+  ![image](Assets/nomor7.1.png)
 
   2. Pilih salah satu baris trafik HTTP yang mencurigakan (misalnya metode `POST /goform/set_LimitClient_cfg` pada paket nomor 4349).
   3. Klik dua kali pada paket tersebut untuk membuka jendela detail, lalu luaskan bagian protokol **Hypertext Transfer Protocol (HTTP)** di panel tengah.
   4. Cari baris parameter **User-Agent** untuk melihat identitas perangkat atau aplikasi pengirim.
 
-  [!image](Assets/nomor7.2.png)
+  ![image](Assets/nomor7.2.png)
 
 * **Hasil Analisis:** 
   * Dari hasil inspeksi detail paket HTTP, ditemukan baris **`User-Agent: Go-http-client/1.1`**.
