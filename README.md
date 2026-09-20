@@ -12,6 +12,7 @@
 Dalam tugas kelompok ini, kami mengambil studi kasus mengenai analisis lalu lintas jaringan pada sebuah server web publik yang menghadapi pemindaian (*scanning*), *probe*, dan trafik mencurigakan dari internet selama tujuh hari
 * **Sumber File PCAP:** Malware-Traffic-Analysis (Tanggal 7 Agustus 2026)
 * **Tautan Sumber Resmi:** [Malware-Traffic-Analysis 2026-08-07](https://malware-traffic-analysis.net/2026/08/07/index.html)
+* **Pasword file:** infected_20260807
 
 ---
 
