@@ -21,20 +21,47 @@ Berikut adalah rincian 10 poin utama yang kamianalisis beserta cara mengidentifi
 
 ### 1. Identifikasi Sumber Serangan (Attacker IP / Scanner IP) & Pemetaan Alamat IP Penyerang (Attacker Profiling)
 * **Cara Identifikasi:**
+- Buka menu Statistics -> Endpoints pada Wireshark, lalu pilih tab IPv4. Urutkan berdasarkan kolom Packet Count atau Bytes untuk mengidentifikasi host internal/eksternal yang paling aktif.
+
+- Buka Statistics -> Conversations -> IPv4, lalu amati pasangan IP yang menghasilkan percakapan terbanyak atau koneksi asimetris (banyak paket keluar tanpa respons yang wajar).
+
+- Terapkan display filter ip.src == <IP_Kandidat> atau filter anomali seperti lonjakan transmisi ke IP eksternal publik yang tidak dikenal / C2 (Command and Control).
 * **Hasil Analisis:** 
+Teridentifikasi host lokal/korban (perangkat Android) dengan alamat IP privat (misalnya 192.168.x.x / 10.x.x.x) yang secara agresif mengirimkan transmisi ke luar.
+
+IP penyerang/C2 eksternal terpetakan melalui interaksi DNS dan percakapan berulang ke alamat IP publik tujuan yang bertindak sebagai Authoritative Name Server jahat atau pengendali lalu lintas tunneling.
 
 ### 2. Jenis Scan atau Probe yang Diduga Digunakan (Network/Port Scanning)
 * **Cara Identifikasi:** 
-* **Hasil Analisis:** 
+- Terapkan display filter TCP flag untuk mendeteksi SYN Stealth Scan atau Full Connect Scan: tcp.flags.syn == 1 && tcp.flags.ack == 0.
 
+- Amati apakah terdapat paket balasan RST, ACK dalam jumlah tinggi secara beruntun menggunakan filter tcp.flags.reset == 1.
+
+- Untuk pemindaian UDP, gunakan filter icmp.type == 3 && icmp.code == 3 (Destination unreachable, Port unreachable) untuk melihat probe UDP ke port yang tertutup.
+
+- Amati grafik throughput dan frekuensi transmisi melalui menu Statistics -> I/O Graphs untuk melihat lonjakan paket per detik (packets per second) secara serentak.
+* **Hasil Analisis:** 
+Pola menunjukkan pengiriman paket probe secara berurutan (sequential) atau acak cepat (rapid probing) ke rentang port tertentu tanpa menyelesaikan three-way handshake secara lengkap. Tingginya paket balasan RST/ACK atau ICMP Type 3 Code 3 mengonfirmasi adanya aktivitas network enumeration / port scanning terhadap host target sebelum komunikasi intensif berlangsung.
 ### 3. Target Layanan Jaringan yang Disasar (IP Services / Ports)
-* **Cara Identifikasi:** 
-* **Hasil Analisis:** 
+* **Cara Identifikasi:**
+- Buka menu Statistics -> Protocol Hierarchy untuk melihat distribusi persentase protokol aplikasi yang aktif (DNS, HTTP, TLS, SSH, dll.).
 
+- Buka Statistics -> Endpoints, pilih tab TCP dan UDP, kemudian lakukan pengurutan pada kolom Port untuk melihat port tujuan yang paling sering dihubungi.
+
+- Gunakan display filter berbasis port spesifik, misalnya: tcp.port in {21, 22, 23, 80, 443, 8080} atau udp.port == 53. 
+* **Hasil Analisis:** 
+Target layanan mencakup port standar web dan manajemen (Port 80/HTTP, 443/HTTPS, 8080), serta port UDP 53 (DNS) yang dijadikan kanal komunikasi utama. Layanan UDP 53 mendominasi volume anomali, di mana protokol ini dimanfaatkan sebagai vektor evasion untuk melewati filtrasi firewall standar jaringan internal.
 ### 4. Pola HTTP Request / Web Traffic (Jika Menyerang Web Server)
 * **Cara Identifikasi:** 
-* **Hasil Analisis:** 
+- Gunakan display filter http atau filter request method: http.request.method in {"GET", "POST", "HEAD"}.
 
+- Periksa daftar URI yang diminta melalui menu Statistics -> HTTP -> Requests.
+
+- Telusuri kode status respon server dengan filter http.response.code >= 400 (mencari respon 404 Not Found, 403 Forbidden, atau 500 Server Error yang timbul akibat serangan directory brute-force / web fuzzing).
+
+- Analisis isi payload HTTP menggunakan fitur Follow -> HTTP Stream untuk memeriksa keberadaan karakter eksploitasi (seperti path traversal ../, SQL Injection, maupun User-Agent scanner otomatis seperti sqlmap, Nikto, Go-http-client).
+* **Hasil Analisis:** 
+Apabila terdapat lalu lintas HTTP langsung, ditemukan pola fuzzing / percobaan akses ke berkas sensitif yang menghasilkan rentetan respon kode 404/403, atau komunikasi HTTP-over-DNS yang di-encapsulate di dalam query tunneling. Terlihat adanya pola request header yang berulang (anomalous User-Agent) atau POST request dengan payload data base64 yang dikirimkan ke endpoint web pengontrol/C2 penyerang.
 ### 5. Indikator Anomali Lainnya (Frequency & Volume)
 * **Cara Identifikasi:** 
   1. Buka file PCAP di Wireshark dan amati daftar paket utama.
