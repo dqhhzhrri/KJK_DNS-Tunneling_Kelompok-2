@@ -4,7 +4,7 @@
 
 | Nama | NRP | Pembagian Analisis |
 | :--- | :--- | :--- |
-| Afriezal | 50272510xx | Poin 1 - 4 (Pendahuluan, Profiling IP, Jenis Scan, & Target Port) |
+| Afriezal | 5027251096 | Poin 1 - 4 (Pendahuluan, Profiling IP, Jenis Scan, & Target Port) |
 | D'Qhaizhar Ari Dhiaulhaq | 5027251083 | Poin 5 - 7 (Anomali Volume, I/O Graph, & Analisis User-Agent) |
 | Rayhan Fadhilah Allayn | 5027251126 | Poin 8 - 10 (Status Respon Server, Payload, & Kesimpulan Mitigasi) |
 
