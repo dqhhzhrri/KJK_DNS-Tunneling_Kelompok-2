@@ -116,6 +116,8 @@ Apabila terdapat lalu lintas HTTP langsung, ditemukan pola fuzzing / percobaan a
 
 - 200 OK: Terjadi pada akses halaman utama (`GET /`) dari lalu lintas normal maupun alat pemindai otomatis (CensysInspect dan zgrab), menunjukkan server berhasil menyajikan konten HTML wiresharkworkshop.online.
 
+![image](Assets/Nomor8.png)
+
 ### 9. Analisis Payload atau Data yang Dikirim (Request Parameters / POST Data)
 * **Cara Identifikasi:** Diidentifikasi dengan menganalisis string URL query, parameter request, serta body payload (POST data) pada log HTTP request atau rekonstruksi stream HTTP di Wireshark untuk menemukan sintaks perintah sistem, skrip berbahaya, atau pola eksploitasi.
 
@@ -132,6 +134,8 @@ Apabila terdapat lalu lintas HTTP langsung, ditemukan pola fuzzing / percobaan a
 
 - **Reconnaissance & Automated Scanning**: 
 Pemindaian otomatis menggunakan User-Agent seperti CensysInspect/1.1 dan zgrab/0.x untuk mengidentifikasi port terbuka, versi Apache (2.4.58 Ubuntu), serta struktur direktori web.
+
+![image](Assets/Nomor9.png)
 
 ### 10. Kesimpulan & Rekomendasi Mitigasi (Security Hardening)
 * **Kesimpulan:** Server target secara aktif menjadi sasaran pemindaian otomatis dan percobaan serangan Remote Code Execution (RCE) / Command Injection yang bertujuan merekrut perangkat ke dalam botnet (seperti Mozi) serta mengunduh payload berbahaya. Seluruh percobaan eksploitasi dalam log ini gagal karena endpoint sasaran tidak ditemukan (404) atau metode ditolak (405).
